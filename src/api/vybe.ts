@@ -33,7 +33,7 @@ export const VybeApi = {
 	async getMultiWalletTokenBalances(wallets: string[]): Promise<any> {
 		const response = await api.post("/account/token-balances", { wallets });
 
-		console.log({response})
+		console.log({ response });
 		return response.data;
 	},
 
@@ -280,5 +280,80 @@ export const VybeApi = {
 		}
 
 		return result;
+	},
+
+	/**
+	 * Get NFT balances for multiple wallet addresses
+	 */
+	async getNFTBalances(walletAddresses: string[]): Promise<any> {
+		try {
+			const response = await api.post("/account/nft-balances", {
+				wallets: walletAddresses,
+			});
+			return response.data;
+		} catch (error) {
+			console.error("Error fetching NFT balances:", error);
+			return {
+				totalValueUsd: 0,
+				nfts: [],
+			};
+		}
+	},
+
+	/**
+	 * Get top tokens by market cap
+	 */
+	async getTopTokensByMarketCap(limit: number = 10): Promise<any[]> {
+		try {
+			const response = await api.get("/tokens", {
+				params: {
+					sortByDesc: "market_cap",
+					limit,
+					page: 0,
+				},
+			});
+
+			return response.data.data || [];
+		} catch (error) {
+			console.error("Error fetching top tokens:", error);
+			return [];
+		}
+	},
+
+	/**
+	 * Get detailed token information by mint address
+	 */
+	async getDetailedTokenInfo(mintAddress: string): Promise<any> {
+		try {
+			const response = await api.get(`/token/${mintAddress}`);
+			console.log({ resssssssssssss: response.data.data });
+
+			return response.data;
+		} catch (error) {
+			console.error(`Error fetching token details for ${mintAddress}:`, error);
+			return null;
+		}
+	},
+
+	/**
+	 * Get token OHLCV data for price charts
+	 */
+	async getTokenOHLCV(
+		mintAddress: string,
+		resolution: string = "1d",
+		limit: number = 30,
+	): Promise<any> {
+		try {
+			const response = await api.get(`/price/${mintAddress}/token-ohlcv`, {
+				params: {
+					resolution,
+					limit,
+				},
+			});
+			return response.data.data || [];
+		} catch (error) {
+			console.error(`Error fetching OHLCV data for ${mintAddress}:`, error);
+			return [];
+		}
 	},
 };

@@ -23,7 +23,7 @@ export const KeyboardUtils = {
 			keyboard.text("➕ Add Wallet", "wallet_add");
 		}
 
-		keyboard.row().text("💰 Refresh Balances", "wallets_refresh");
+		keyboard.row().text("🖼️ See NFT Portfolio", "view_nfts");
 		keyboard.row().text("ℹ️ Help", "show_help");
 
 		return keyboard;

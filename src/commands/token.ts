@@ -1,112 +1,265 @@
-import { CommandContext } from "grammy";
+import { CommandContext, InlineKeyboard } from "grammy";
 import { VybeApi } from "../api/vybe";
 import { MessageUtils } from "../utils/message";
 import { FormatUtils } from "../utils/format";
 import { MyContext } from "../types/session";
 
 /**
- * Handle the /token command
- *
- * This command provides detailed information about a token by its symbol or address
+ * Handle token command
+ * Shows token details if an address is provided, otherwise shows top tokens by market cap
  */
 export const handleTokenCommand = async (
 	ctx: CommandContext<MyContext>,
 ): Promise<void> => {
 	try {
-		// Extract token symbol or address from the command
-		const input = ctx.match;
+		// Get the command arguments
+		const args = ctx.match.trim();
 
-		if (!input) {
-			await ctx.reply(
-				"Please provide a token symbol or mint address. Example: `/token SOL`",
+		// If no arguments, show top tokens
+		if (!args) {
+			await displayTopTokens(ctx);
+			return;
+		}
+
+		// Otherwise, try to show token details
+		await displayTokenDetails(ctx, args);
+	} catch (error) {
+		console.error("Error handling token command:", error);
+		await ctx.reply(
+			"An error occurred while fetching token information. Please try again.",
+		);
+	}
+};
+
+/**
+ * Display top tokens by market cap
+ */
+const displayTopTokens = async (ctx: MyContext): Promise<void> => {
+	// Show loading message
+	const loadingMsg = await ctx.reply("Loading top tokens by market cap...");
+
+	try {
+		// Fetch top tokens
+		const tokens = await VybeApi.getTopTokensByMarketCap(10);
+		console.log({ tokensLengthh: tokens.length });
+
+		if (!tokens || tokens.length === 0) {
+			await ctx.api.editMessageText(
+				loadingMsg.chat.id,
+				loadingMsg.message_id,
+				"No token data available at the moment.",
+			);
+			return;
+		}
+
+		// Create message
+		let message = "*Top Tokens by Market Cap*\n\n";
+		message += "```\n";
+		message += "Token      | Price            | 24h Change\n";
+		message += "-----------|-----------------|-----------\n";
+
+		// Add token rows
+		tokens.forEach((token, index) => {
+			const symbol = (token.symbol || "Unknown").padEnd(10, " ");
+			const price = FormatUtils.formatCurrency(
+				parseFloat(token.price || 0),
+			).padEnd(15, " ");
+
+			const priceChange1d = parseFloat(token.priceChange1d || 0);
+			const changeSign = priceChange1d >= 0 ? "+" : "";
+			const change = `${changeSign}${(priceChange1d * 100).toFixed(2)}%`;
+
+			message += `${symbol} | ${price} | ${change}\n`;
+		});
+
+		message += "```\n\n";
+		message += "Click on a token to see detailed information:\n";
+
+		// Create keyboard with tokens
+		const keyboard = new InlineKeyboard();
+
+		// Add tokens to keyboard (two columns)
+		for (let i = 0; i < tokens.length; i += 2) {
+			const token1 = tokens[i];
+			const token2 = i + 1 < tokens.length ? tokens[i + 1] : null;
+
+			keyboard.text(`${token1.symbol}`, `token_details:${token1.mintAddress}`);
+
+			if (token2) {
+				keyboard.text(
+					`${token2.symbol}`,
+					`token_details:${token2.mintAddress}`,
+				);
+			}
+
+			keyboard.row();
+		}
+
+		// Update message
+		await ctx.api.editMessageText(
+			loadingMsg.chat.id,
+			loadingMsg.message_id,
+			message,
+			{
+				parse_mode: "Markdown",
+				reply_markup: keyboard,
+			},
+		);
+	} catch (error) {
+		console.error("Error displaying top tokens:", error);
+
+		// Update loading message with error
+		await ctx.api.editMessageText(
+			loadingMsg.chat.id,
+			loadingMsg.message_id,
+			"An error occurred while fetching top tokens. Please try again.",
+		);
+	}
+};
+
+/**
+ * Display token details for a specific token
+ */
+export const displayTokenDetails = async (
+	ctx: MyContext,
+	mintAddress: string,
+): Promise<void> => {
+	// Show loading message
+	const loadingMsg = await ctx.reply(`Loading token details...`);
+
+	try {
+		// Fetch token details
+		const tokenDetails = await VybeApi.getDetailedTokenInfo(mintAddress);
+
+		if (!tokenDetails) {
+			await ctx.api.editMessageText(
+				loadingMsg.chat.id,
+				loadingMsg.message_id,
+				`No details found for the specified token.`,
 				{
-					parse_mode: "Markdown",
+					reply_markup: createBackToTokensKeyboard(),
 				},
 			);
 			return;
 		}
 
-		// Show loading message
-		const loadingMessage = await ctx.reply("Fetching token details...");
+		// Create message with token information
+		let message = `*${tokenDetails.name} (${tokenDetails.symbol})*\n\n`;
 
-		try {
-			// Try to get token by mint address directly
-			let tokenDetails;
+		// Token basic information
+		message += `*Contract:* \`${mintAddress}\`\n`;
+		message += `*Current Price:* ${FormatUtils.formatCurrency(
+			parseFloat(tokenDetails.price || 0),
+		)}\n`;
 
-			// If input looks like a Solana address (base58 string, typically 32-44 chars)
-			if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
-				// Direct fetch by mint address
-				tokenDetails = await VybeApi.getTokenDetails(input);
-			} else {
-				// Fetch tokens list and filter by symbol
-				const tokens = await VybeApi.getTokensList();
-				const token = tokens.find(
-					(t: any) =>
-						t.symbol?.toLowerCase() === input.toLowerCase() ||
-						t.name?.toLowerCase() === input.toLowerCase(),
-				);
-
-				if (!token) {
-					await ctx.api.editMessageText(
-						loadingMessage.chat.id,
-						loadingMessage.message_id,
-						`Token not found: ${input}. Please check the symbol or mint address and try again.`,
-					);
-					return;
-				}
-
-				tokenDetails = await VybeApi.getTokenDetails(token.mintAddress);
-			}
-
-			// Format message with token details
-			const message = MessageUtils.formatTokenDetailsMessage(tokenDetails);
-
-			// Get top holders to add to the message
-			const holdersData = await VybeApi.getTopHolders(
-				tokenDetails.mintAddress,
-				3,
-			);
-			let holdersMessage = "";
-
-			if (holdersData.holders?.length > 0) {
-				holdersMessage = "\n\n*Top Holders:*\n";
-				holdersData.holders.forEach((holder, index) => {
-					const holderName =
-						holder.ownerName ||
-						FormatUtils.truncateAddress(holder.ownerAddress);
-					holdersMessage +=
-						`${index + 1}. ${holderName}: ${holder.percentage.toFixed(2)}% ` +
-						`(${FormatUtils.formatCurrency(holder.usdValue)})\n`;
-				});
-			}
-
-			// Update the loading message with the result
-			await ctx.api.editMessageText(
-				loadingMessage.chat.id,
-				loadingMessage.message_id,
-				message + holdersMessage,
-				{
-					parse_mode: "Markdown",
-					// disable_web_page_preview: true,
-				},
-			);
-
-			// Add additional request for price chart in a separate message
-			await ctx.reply("Use `/price " + input + "` to see price chart.", {
-				parse_mode: "Markdown",
-			});
-		} catch (error) {
-			// Handle specific API errors
-			await ctx.api.editMessageText(
-				loadingMessage.chat.id,
-				loadingMessage.message_id,
-				MessageUtils.formatErrorMessage(error),
-			);
+		// Add market data
+		if (tokenDetails.marketCap) {
+			message += `*Market Cap:* ${FormatUtils.formatCurrency(
+				parseFloat(tokenDetails.marketCap),
+			)}\n`;
 		}
+
+		if (tokenDetails.fullyDilutedValuation) {
+			message += `*Fully Diluted Valuation:* ${FormatUtils.formatCurrency(
+				parseFloat(tokenDetails.fullyDilutedValuation),
+			)}\n`;
+		}
+
+		if (tokenDetails.volume1d) {
+			message += `*24h Volume:* ${FormatUtils.formatCurrency(
+				parseFloat(tokenDetails.volume1d),
+			)}\n`;
+		}
+
+		// Add price change information
+		const priceChange1d = parseFloat(tokenDetails.priceChange1d || 0);
+		const changeSign = priceChange1d >= 0 ? "+" : "";
+		message += `*24h Change:* ${changeSign}${(priceChange1d * 100).toFixed(
+			2,
+		)}%\n`;
+
+		// Add 7d price change if available
+		if (tokenDetails.priceChange7d) {
+			const priceChange7d = parseFloat(tokenDetails.priceChange7d);
+			const changeSign7d = priceChange7d >= 0 ? "+" : "";
+			message += `*7d Change:* ${changeSign7d}${(priceChange7d * 100).toFixed(
+				2,
+			)}%\n`;
+		}
+
+		// Add trading details and liquidity if available
+		if (tokenDetails.liquidity) {
+			message += `*Liquidity:* ${FormatUtils.formatCurrency(
+				parseFloat(tokenDetails.liquidity),
+			)}\n`;
+		}
+
+		// Add token supply information
+		if (tokenDetails.supply) {
+			message += `*Supply:* ${parseInt(
+				tokenDetails.supply,
+			).toLocaleString()}\n`;
+		}
+
+		if (tokenDetails.circulatingSupply) {
+			message += `*Circulating Supply:* ${parseInt(
+				tokenDetails.circulatingSupply,
+			).toLocaleString()}\n`;
+		}
+
+		// Add social links
+		message += "\n*Links:*\n";
+
+		if (tokenDetails.website) {
+			message += `[Website](${tokenDetails.website}) `;
+		}
+
+		if (tokenDetails.twitter) {
+			message += `[Twitter](${tokenDetails.twitter}) `;
+		}
+
+		if (tokenDetails.telegram) {
+			message += `[Telegram](${tokenDetails.telegram})`;
+		}
+
+		// Add explorer link
+		message += `\n\n[View on Explorer](https://solscan.io/token/${mintAddress})\n`;
+
+		// Create keyboard with copy button
+		const keyboard = new InlineKeyboard()
+			.text("📋 Copy Address", `copy_token:${mintAddress}`)
+			.text("📈 See Price Chart", `price_chart:${mintAddress}`)
+			.row()
+			.text("« Back to Top Tokens", "back_to_tokens");
+
+		// Update loading message with token details
+		await ctx.api.editMessageText(
+			loadingMsg.chat.id,
+			loadingMsg.message_id,
+			message,
+			{
+				parse_mode: "Markdown",
+				reply_markup: keyboard,
+			},
+		);
 	} catch (error) {
-		// Handle unexpected errors
-		await ctx.reply(MessageUtils.formatErrorMessage(error), {
-			parse_mode: "Markdown",
-		});
+		console.error("Error displaying token details:", error);
+
+		// Update loading message with error
+		await ctx.api.editMessageText(
+			loadingMsg.chat.id,
+			loadingMsg.message_id,
+			"An error occurred while fetching token details. Please try again.",
+			{
+				reply_markup: createBackToTokensKeyboard(),
+			},
+		);
 	}
+};
+
+/**
+ * Create a back to tokens keyboard
+ */
+const createBackToTokensKeyboard = (): InlineKeyboard => {
+	return new InlineKeyboard().text("« Back to Top Tokens", "back_to_tokens");
 };

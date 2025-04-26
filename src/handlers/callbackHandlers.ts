@@ -2,6 +2,9 @@ import { MyContext } from "../types/session";
 import { redisService, UserWallet } from "../services/redis";
 import { showHelp } from "../commands/help";
 import { displayWalletDetail } from "../commands/start";
+import { displayNFTPortfolio } from "../commands/nft";
+import { displayTokenDetails, handleTokenCommand } from "../commands/token";
+import { displayPriceChart } from "../commands/price";
 import { FormatUtils } from "../utils/format";
 import { KeyboardUtils } from "../utils/keyboard";
 
@@ -21,7 +24,7 @@ export const handleCallbackQuery = async (ctx: MyContext): Promise<void> => {
 			// Handle help button click
 			await showHelp(ctx);
 		} else if (callbackData === "wallet_add") {
-			// Handle add wallet button click  from start command,...
+			// Handle add wallet button click
 			await handleAddWalletButton(ctx);
 		} else if (callbackData === "view_wallets") {
 			// Handle view wallets button click
@@ -29,10 +32,40 @@ export const handleCallbackQuery = async (ctx: MyContext): Promise<void> => {
 		} else if (callbackData === "back_to_wallets") {
 			// Handle back to wallets button click
 			await handleViewWalletsButton(ctx);
+		} else if (callbackData === "view_nfts") {
+			// Handle view NFTs button click
+			await displayNFTPortfolio(ctx);
 		} else if (callbackData.startsWith("wallet_view:")) {
 			// Handle wallet view button click
 			const walletAddress = callbackData.split(":")[1];
 			await displayWalletDetail(ctx, walletAddress);
+		} else if (callbackData === "back_to_tokens") {
+			// Handle back to tokens list click
+			await handleTokenCommand(ctx as any);
+		} else if (callbackData.startsWith("token_details:")) {
+			// Handle token details click
+			const mintAddress = callbackData.split(":")[1];
+			await displayTokenDetails(ctx, mintAddress);
+		} else if (callbackData.startsWith("price_chart:")) {
+			// Handle price chart click
+			const mintAddress = callbackData.split(":")[1];
+			await displayPriceChart(ctx, mintAddress);
+		} else if (callbackData.startsWith("price_range:")) {
+			// Handle price range selection
+			const parts = callbackData.split(":");
+			const mintAddress = parts[1];
+			const range = parts[2];
+			await displayPriceChart(ctx, mintAddress); // Range will be implemented in a future version
+		} else if (callbackData.startsWith("copy_token:")) {
+			// Handle copy token address click
+			const mintAddress = callbackData.split(":")[1];
+			await ctx.answerCallbackQuery({
+				text: "Token address copied to clipboard!",
+				show_alert: false,
+			});
+			await ctx.reply(`\`${mintAddress}\``, {
+				parse_mode: "Markdown",
+			});
 		}
 	} catch (error) {
 		console.error("Error handling callback query:", error);
