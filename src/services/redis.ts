@@ -1,0 +1,106 @@
+// Note: Install required packages: npm install @upstash/redis
+import { Redis } from "@upstash/redis";
+import config from "../config";
+
+// Define interfaces
+export interface UserWallet {
+	address: string;
+	label?: string;
+	addedAt: number;
+}
+
+export interface UserData {
+	userId: number;
+	username?: string;
+	wallets: UserWallet[];
+	lastInteraction: number;
+}
+
+class RedisService {
+	private client: Redis;
+
+	constructor() {
+		this.client = new Redis({
+			url: config.REDIS_URL,
+			token: config.REDIS_TOKEN || "", // Default to empty string if token is not defined
+		});
+	}
+
+	async connect(): Promise<void> {
+		console.log("Upstash Redis service initialized");
+	}
+
+	async getUserData(userId: number): Promise<UserData | null> {
+		const userData = await this.client.get(`user:${userId}`);
+		return userData as UserData | null;
+	}
+
+	async saveUserData(userData: UserData): Promise<void> {
+		await this.client.set(`user:${userData.userId}`, userData);
+	}
+
+	async addUserWallet(userId: number, wallet: UserWallet): Promise<void> {
+		const userData = await this.getUserData(userId);
+
+		if (userData) {
+			// Check if wallet already exists
+			if (!userData.wallets.some((w) => w.address === wallet.address)) {
+				userData.wallets.push(wallet);
+				userData.lastInteraction = Date.now();
+				await this.saveUserData(userData);
+			}
+		} else {
+			// Create new user data
+			const newUserData: UserData = {
+				userId,
+				wallets: [wallet],
+				lastInteraction: Date.now(),
+			};
+			await this.saveUserData(newUserData);
+		}
+	}
+
+	async removeUserWallet(
+		userId: number,
+		walletAddress: string,
+	): Promise<boolean> {
+		const userData = await this.getUserData(userId);
+
+		if (userData) {
+			const initialLength = userData.wallets.length;
+			userData.wallets = userData.wallets.filter(
+				(w) => w.address !== walletAddress,
+			);
+			userData.lastInteraction = Date.now();
+
+			await this.saveUserData(userData);
+			return userData.wallets.length < initialLength;
+		}
+
+		return false;
+	}
+
+	async registerUser(userId: number, username?: string): Promise<void> {
+		const existingUser = await this.getUserData(userId);
+
+		if (!existingUser) {
+			const userData: UserData = {
+				userId,
+				username,
+				wallets: [],
+				lastInteraction: Date.now(),
+			};
+			await this.saveUserData(userData);
+		} else {
+			// Update username if provided
+			if (username && existingUser.username !== username) {
+				existingUser.username = username;
+				existingUser.lastInteraction = Date.now();
+				await this.saveUserData(existingUser);
+			}
+		}
+	}
+}
+
+// Export singleton instance
+export const redisService = new RedisService();

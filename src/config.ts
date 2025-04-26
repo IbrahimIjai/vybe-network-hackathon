@@ -1,27 +1,27 @@
 import dotenv from "dotenv";
 import path from "path";
 
-// Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 interface Config {
 	BOT_TOKEN: string;
 	VYBE_API_KEY: string;
 	PORT: number;
-	ALPHA_VYBE_URL: string;
 	VYBE_API_BASE_URL: string;
 	PRICE_WEBSOCKET_URL: string;
+	REDIS_URL: string;
+	REDIS_TOKEN: string;
 }
 
 // Configure environment variables
 const config: Config = {
 	BOT_TOKEN: process.env.BOT_TOKEN || "",
 	VYBE_API_KEY: process.env.VYBE_API_KEY || "",
-	PORT: parseInt(process.env.PORT || "3000", 10),
-	ALPHA_VYBE_URL: process.env.ALPHA_VYBE_URL || "https://alphavybe.xyz",
-	VYBE_API_BASE_URL: "https://api.vybe.finance/v0",
-	PRICE_WEBSOCKET_URL:
-		process.env.PRICE_WEBSOCKET_URL || "wss://api.vybe.finance/ws/prices",
+	PORT: parseInt(process.env.PORT!, 10),
+	VYBE_API_BASE_URL: process.env.VYBE_API_BASE_URL!,
+	PRICE_WEBSOCKET_URL: process.env.PRICE_WEBSOCKET_URL!,
+	REDIS_URL: process.env.REDIS_URL!,
+	REDIS_TOKEN: process.env.REDIS_TOKEN!,
 };
 
 // Validate essential configuration

@@ -233,4 +233,50 @@ export const VybeApi = {
 			return null;
 		}
 	},
+
+	/**
+	 * Get the combined balance for a wallet
+	 */
+	async getWalletTotalBalance(walletAddress: string): Promise<number> {
+		try {
+			const balanceData = await this.getTokenBalance(walletAddress);
+			return balanceData.totalUsdValue || 0;
+		} catch (error) {
+			console.error(
+				`Error getting total balance for wallet ${walletAddress}:`,
+				error,
+			);
+			return 0;
+		}
+	},
+
+	/**
+	 * Get all wallet balances for multiple addresses
+	 */
+	async getMultipleWalletBalances(
+		walletAddresses: string[],
+	): Promise<{ [address: string]: number }> {
+		const result: { [address: string]: number } = {};
+
+		// Process in chunks to avoid rate limits
+		const chunkSize = 3;
+		for (let i = 0; i < walletAddresses.length; i += chunkSize) {
+			const chunk = walletAddresses.slice(i, i + chunkSize);
+
+			// Process chunk in parallel
+			const chunkPromises = chunk.map(async (address) => {
+				const balance = await this.getWalletTotalBalance(address);
+				result[address] = balance;
+			});
+
+			await Promise.all(chunkPromises);
+
+			// Small delay between chunks to avoid rate limits
+			if (i + chunkSize < walletAddresses.length) {
+				await new Promise((resolve) => setTimeout(resolve, 500));
+			}
+		}
+
+		return result;
+	},
 };
