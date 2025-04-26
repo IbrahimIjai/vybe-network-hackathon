@@ -4,8 +4,6 @@ import { MessageUtils } from "../utils/message";
 import { FormatUtils } from "../utils/format";
 import { ChartService } from "../services/chart";
 
-//This command shows trending tokens based on volume and price changes
- 
 export const handleTrendingCommand = async (
 	ctx: CommandContext<Context>,
 ): Promise<void> => {

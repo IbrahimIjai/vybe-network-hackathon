@@ -10,6 +10,7 @@ interface Config {
 	PORT: number;
 	ALPHA_VYBE_URL: string;
 	VYBE_API_BASE_URL: string;
+	PRICE_WEBSOCKET_URL: string;
 }
 
 // Configure environment variables
@@ -19,6 +20,8 @@ const config: Config = {
 	PORT: parseInt(process.env.PORT || "3000", 10),
 	ALPHA_VYBE_URL: process.env.ALPHA_VYBE_URL || "https://alphavybe.xyz",
 	VYBE_API_BASE_URL: "https://api.vybe.finance/v0",
+	PRICE_WEBSOCKET_URL:
+		process.env.PRICE_WEBSOCKET_URL || "wss://api.vybe.finance/ws/prices",
 };
 
 // Validate essential configuration

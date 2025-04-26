@@ -173,7 +173,6 @@ export const MessageUtils = {
 			`/whales <symbol/address> - Track large token transfers\n` +
 			`/program <program_id> - Get program details\n` +
 			`/trending - Show trending tokens\n` +
-			`/alerts - Manage your custom alerts\n` +
 			`/compare <token1,token2> - Compare token metrics\n` +
 			`/help - Show this help message\n\n` +
 			`*Need more analytics?*\n` +

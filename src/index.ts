@@ -13,6 +13,9 @@ import { handleTrendingCommand } from "./commands/trending";
 import { handleHoldersCommand } from "./commands/holders";
 import { handleCompareCommand } from "./commands/compare";
 import { handleHelpCommand } from "./commands/help";
+import { handleStartCommand } from "./commands/start";
+// import { handleTrackCommand } from "./commands/track";
+// import { handleNotificationsCommand } from "./commands/notifications";
 
 // Create bot instance
 const bot = new Bot<MyContext>(config.BOT_TOKEN);
@@ -28,6 +31,8 @@ bot.api.setMyCommands([
 	{ command: "program", description: "Get program details" },
 	{ command: "trending", description: "Show trending tokens" },
 	{ command: "compare", description: "Compare token metrics" },
+	// { command: "track", description: "Track token prices or wallet activity" },
+	// { command: "notifications", description: "Manage notification settings" },
 	{ command: "help", description: "Show help information" },
 ]);
 
@@ -41,7 +46,9 @@ bot.command("trending", handleTrendingCommand);
 bot.command("holders", handleHoldersCommand);
 bot.command("compare", handleCompareCommand);
 bot.command("help", handleHelpCommand);
-bot.command("start", handleHelpCommand); //  /start /help
+bot.command("start", handleStartCommand);
+// bot.command("track", handleTrackCommand);
+// bot.command("notifications", handleNotificationsCommand);
 
 // Handle errors
 bot.catch((err) => {
@@ -89,7 +96,6 @@ if (process.env.NODE_ENV === "production") {
 	startBot();
 }
 
-
 if (process.env.NODE_ENV === "production") {
 	const app = express();
 
@@ -101,3 +107,12 @@ if (process.env.NODE_ENV === "production") {
 		console.log(`Health check endpoint listening on port ${config.PORT + 1}`);
 	});
 }
+
+// Initialize the realtime services
+// import { realtimePriceService } from "./services/realtime-price";
+// import { transferWatcherService } from "./services/transfer-watcher";
+// import { priceAlertService } from "./jobs/price-alerts";
+// import { walletMonitorService } from "./jobs/wallet-monitor";
+
+// Export bot instance for use in other files
+export { bot };

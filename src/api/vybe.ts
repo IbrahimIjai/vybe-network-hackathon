@@ -168,4 +168,69 @@ export const VybeApi = {
 		const response = await api.get("/programs", { params });
 		return response.data.programs;
 	},
+
+	/**
+	 * Check if a token exists by symbol
+	 */
+	async checkTokenExists(symbol: string): Promise<boolean> {
+		try {
+			const tokens = await this.getTokensList();
+			return tokens.some(
+				(t: any) =>
+					t.symbol?.toLowerCase() === symbol.toLowerCase() ||
+					t.name?.toLowerCase() === symbol.toLowerCase(),
+			);
+		} catch (error) {
+			console.error("Error checking token existence:", error);
+			return false;
+		}
+	},
+
+	/**
+	 * Get a token by symbol
+	 */
+	async getTokenBySymbol(symbol: string): Promise<any> {
+		try {
+			const tokens = await this.getTokensList();
+			return tokens.find(
+				(t: any) =>
+					t.symbol?.toLowerCase() === symbol.toLowerCase() ||
+					t.name?.toLowerCase() === symbol.toLowerCase(),
+			);
+		} catch (error) {
+			console.error("Error getting token by symbol:", error);
+			return null;
+		}
+	},
+
+	/**
+	 * Get wallet transfers
+	 */
+	async getWalletTransfers(
+		walletAddress: string,
+		fromTimestamp: number,
+	): Promise<any[]> {
+		try {
+			const response = await api.get(`/transfers`, {
+				params: { address: walletAddress, fromTime: fromTimestamp },
+			});
+			return response.data.transfers || [];
+		} catch (error) {
+			console.error("Error fetching wallet transfers:", error);
+			return [];
+		}
+	},
+
+	/**
+	 * Get wallet info
+	 */
+	async getWalletInfo(walletAddress: string): Promise<any> {
+		try {
+			const response = await api.get(`/wallet/${walletAddress}`);
+			return response.data;
+		} catch (error) {
+			console.error("Error fetching wallet info:", error);
+			return null;
+		}
+	},
 };

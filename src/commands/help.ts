@@ -1,14 +1,15 @@
-import { CommandContext, Context } from "grammy";
+import { CommandContext } from "grammy";
 import { MessageUtils } from "../utils/message";
+import { MyContext } from "../types/session";
 
 export const handleHelpCommand = async (
-	ctx: CommandContext<Context>,
+	ctx: CommandContext<MyContext>,
 ): Promise<void> => {
 	try {
 		const helpMessage = MessageUtils.formatHelpMessage();
 
 		await ctx.reply(helpMessage, {
-			parse_mode: "MarkdownV2",
+			parse_mode: "Markdown",
 		});
 	} catch (error) {
 		console.error("Error handling help command:", error);

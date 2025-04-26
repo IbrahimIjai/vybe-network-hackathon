@@ -1,7 +1,17 @@
 import { Context, SessionFlavor, Api } from "grammy";
 
 // Define session data interface
-export interface SessionData {}
+export interface SessionData {
+	trackedPrices?: string[]; // Array of tracked token symbols
+	priceAlerts?: {
+		[symbol: string]: {
+			above?: number;
+			below?: number;
+		};
+	};
+	trackedWallets?: string[]; // Array of wallet addresses to track
+	notificationsEnabled?: boolean;
+}
 
 // Create custom context type with session support
 export type MyContext = Context & SessionFlavor<SessionData>;
