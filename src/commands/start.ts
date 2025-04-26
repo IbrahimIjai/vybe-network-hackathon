@@ -40,38 +40,66 @@ Get real-time analytics for Solana tokens, wallets, and programs directly in Tel
 				// Create loading message
 				const loadingMsg = await ctx.reply("Loading wallet balances...");
 
-				// Fetch wallet balances
+				// Fetch wallet balances with optimized API call
 				const walletAddresses = wallets.map((w) => w.address);
-				const balances = await VybeApi.getMultipleWalletBalances(
+
+				// Use the multi-wallet API for more efficient data fetching
+				const balanceData = await VybeApi.getMultiWalletTokenBalances(
 					walletAddresses,
 				);
 
 				// Create wallet table header
 				walletMessage = "\n*Your Wallet Overview:*\n```\n";
-				walletMessage += "Wallet               | Balance\n";
-				walletMessage += "---------------------|-----------\n";
+				walletMessage += "Wallet(s)           \n";
+				walletMessage += "-------------------------------\n";
 
-				// Add wallet rows
-				wallets.forEach((wallet) => {
-					const truncatedAddress = FormatUtils.truncateAddress(wallet.address);
-					const balance = balances[wallet.address] || 0;
-					const balanceFormatted = FormatUtils.formatCurrency(balance);
+				// Add wallet rows - check if ownerAddresses exists in the response
+				if (
+					balanceData.ownerAddresses &&
+					Array.isArray(balanceData.ownerAddresses)
+				) {
+					balanceData.ownerAddresses.forEach((wallet: string) => {
+						const truncatedAddress = FormatUtils.truncateAddress(wallet);
+						const addressPadded = truncatedAddress.padEnd(20, " ");
+						walletMessage += `${addressPadded}  \n`;
+					});
+				} else {
+					// Fallback to using the original wallets array
+					wallets.forEach((wallet) => {
+						const truncatedAddress = FormatUtils.truncateAddress(
+							wallet.address,
+						);
+						const addressPadded = truncatedAddress.padEnd(20, " ");
+						walletMessage += `${addressPadded} | \n`;
+					});
+				}
 
-					// Create table row with padding
-					const addressPadded = truncatedAddress.padEnd(20, " ");
-					walletMessage += `${addressPadded} | ${balanceFormatted}\n`;
-				});
+				walletMessage += "--------------------------------\n";
 
+				// Format total value
+				const totalValueUsd = balanceData.totalTokenValueUsd
+					? parseFloat(balanceData.totalTokenValueUsd)
+					: 0;
+				const formattedTotal = FormatUtils.formatCurrency(totalValueUsd);
+
+				walletMessage += `Total Portfolio \n`;
+				walletMessage += `T${formattedTotal}\n`;
 				walletMessage += "```\n";
 
-				// Calculate total value
-				const totalValue = Object.values(balances).reduce(
-					(sum, value) => sum + value,
-					0,
-				);
-				walletMessage += `\n*Total Portfolio Value:* ${FormatUtils.formatCurrency(
-					totalValue,
-				)}\n`;
+				// Add token count if available
+				if (balanceData.totalTokenCount) {
+					walletMessage += `\n*Total Tokens:* ${balanceData.totalTokenCount}\n`;
+				}
+
+				// Add 24h change if available
+				if (balanceData.totalTokenValueUsd1dChange) {
+					const change = parseFloat(balanceData.totalTokenValueUsd1dChange);
+					const changePercent = (change / (totalValueUsd - change)) * 100;
+					const changeSign = change >= 0 ? "+" : "";
+					walletMessage += `*24h Change:* ${changeSign}${FormatUtils.formatCurrency(
+						change,
+					)} (${changeSign}${changePercent.toFixed(2)}%)\n`;
+				}
 
 				// Delete loading message
 				await ctx.api.deleteMessage(loadingMsg.chat.id, loadingMsg.message_id);
@@ -126,14 +154,13 @@ export const displayWalletDetail = async (
 			)}...`,
 		);
 
-		// Fetch wallet balance data
-		const walletData = await VybeApi.getTokenBalance(walletAddress);
+		// Use the multi-wallet API to get more comprehensive data
+		const walletData = await VybeApi.getMultiWalletTokenBalances([
+			walletAddress,
+		]);
 
-		if (
-			!walletData ||
-			!walletData.balances ||
-			walletData.balances.length === 0
-		) {
+		// Check if we have valid data
+		if (!walletData || !walletData.data || walletData.data.length === 0) {
 			await ctx.api.editMessageText(
 				loadingMsg.chat.id,
 				loadingMsg.message_id,
@@ -145,19 +172,63 @@ export const displayWalletDetail = async (
 			return;
 		}
 
-		// Sort tokens by USD value
-		const sortedTokens = [...walletData.balances].sort(
-			(a, b) => b.usdValue - a.usdValue,
+		// Sort tokens by USD value (highest first)
+		const sortedTokens = [...walletData.data].sort(
+			(a, b) => parseFloat(b.valueUsd) - parseFloat(a.valueUsd),
 		);
 
 		// Create wallet detail message
 		let message = `*Wallet Detail: \`${FormatUtils.truncateAddress(
 			walletAddress,
 		)}\`*\n\n`;
-		message += `Total Value: ${FormatUtils.formatCurrency(
-			walletData.totalUsdValue,
-		)}\n\n`;
-		message += "*Token Holdings:*\n```\n";
+
+		// Add wallet summary
+		const totalUsdValue = parseFloat(walletData.totalTokenValueUsd || "0");
+		message += `*Total Value:* ${FormatUtils.formatCurrency(totalUsdValue)}\n`;
+		message += `*Number of Tokens:* ${
+			walletData.totalTokenCount || sortedTokens.length
+		}\n`;
+
+		// Add SOL information if available
+		const solToken = sortedTokens.find(
+			(t) => t.symbol?.toUpperCase() === "SOL",
+		);
+		if (solToken) {
+			const solAmount = parseFloat(solToken.amount);
+			const solDecimals = solToken.decimals || 9;
+			const solAmountFormatted = FormatUtils.formatTokenAmount(
+				solAmount,
+				solDecimals,
+			);
+			const solValueUsd = parseFloat(solToken.valueUsd);
+			message += `*SOL Balance:* ${solAmountFormatted} SOL (${FormatUtils.formatCurrency(
+				solValueUsd,
+			)})\n`;
+		}
+
+		// Add staked SOL if available
+		if (
+			walletData.stakedSolBalance &&
+			parseFloat(walletData.stakedSolBalance) > 0
+		) {
+			const stakedSol = parseFloat(walletData.stakedSolBalance);
+			const stakedSolUsd = parseFloat(walletData.stakedSolBalanceUsd || "0");
+			message += `*Staked SOL:* ${stakedSol.toFixed(
+				4,
+			)} SOL (${FormatUtils.formatCurrency(stakedSolUsd)})\n`;
+		}
+
+		// Add 24h change if available
+		if (walletData.totalTokenValueUsd1dChange) {
+			const change = parseFloat(walletData.totalTokenValueUsd1dChange);
+			const changePercent = (change / (totalUsdValue - change)) * 100;
+			const changeSign = change >= 0 ? "+" : "";
+			message += `*24h Change:* ${changeSign}${FormatUtils.formatCurrency(
+				change,
+			)} (${changeSign}${changePercent.toFixed(2)}%)\n`;
+		}
+
+		message += `\n*Token Holdings:*\n\`\`\`\n`;
 		message += "Token      | Amount            | Value\n";
 		message += "-----------|--------------------|------------\n";
 
@@ -166,10 +237,10 @@ export const displayWalletDetail = async (
 		tokensToShow.forEach((token) => {
 			const symbol = (token.symbol || "Unknown").padEnd(10, " ");
 			const amount = FormatUtils.formatTokenAmount(
-				token.amount,
+				parseFloat(token.amount),
 				token.decimals,
 			).padEnd(18, " ");
-			const value = FormatUtils.formatCurrency(token.usdValue);
+			const value = FormatUtils.formatCurrency(parseFloat(token.valueUsd));
 
 			message += `${symbol} | ${amount} | ${value}\n`;
 		});
@@ -180,12 +251,15 @@ export const displayWalletDetail = async (
 		if (sortedTokens.length > 10) {
 			const remainingValue = sortedTokens
 				.slice(10)
-				.reduce((sum, token) => sum + token.usdValue, 0);
+				.reduce((sum, token) => sum + parseFloat(token.valueUsd), 0);
 
 			message += `\n_+${
 				sortedTokens.length - 10
 			} more tokens worth ${FormatUtils.formatCurrency(remainingValue)}_\n`;
 		}
+
+		// Add view on explorer link
+		message += `\n[View on Explorer](https://solscan.io/account/${walletAddress})\n`;
 
 		// Update the loading message with wallet details
 		await ctx.api.editMessageText(

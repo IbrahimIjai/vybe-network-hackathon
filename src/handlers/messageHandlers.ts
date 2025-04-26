@@ -29,7 +29,6 @@ export const handleTextMessage = async (ctx: MyContext): Promise<void> => {
  * This is a basic check - a full validator would use Base58 validation
  */
 function isSolanaAddressFormat(text: string): boolean {
-	// Split by commas in case of multiple addresses
 	const addresses = text.split(",").map((addr) => addr.trim());
 
 	// Check each address format

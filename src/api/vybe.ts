@@ -32,6 +32,8 @@ export const VybeApi = {
 
 	async getMultiWalletTokenBalances(wallets: string[]): Promise<any> {
 		const response = await api.post("/account/token-balances", { wallets });
+
+		console.log({response})
 		return response.data;
 	},
 

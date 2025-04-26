@@ -19,14 +19,9 @@ export const KeyboardUtils = {
 			keyboard.text(`🔍 ${walletLabel}`, `wallet_view:${wallet.address}`).row();
 		});
 
-		// Add control buttons
 		if (includeAddButton) {
 			keyboard.text("➕ Add Wallet", "wallet_add");
 		}
-
-		// if (wallets.length > 0) {
-		// 	keyboard.text("🗑️ Remove Wallet", "wallet_remove");
-		// }
 
 		keyboard.row().text("💰 Refresh Balances", "wallets_refresh");
 		keyboard.row().text("ℹ️ Help", "show_help");
