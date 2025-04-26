@@ -80,10 +80,7 @@ export const handleHoldersCommand = async (
 					holder.ownerName || FormatUtils.truncateAddress(holder.ownerAddress);
 				message +=
 					`${index + 1}. *${holderName}*\n` +
-					`   ${FormatUtils.formatPercentage(
-						holder.percentage,
-						2,
-					)} of supply | ` +
+					`   ${FormatUtils.formatPercentage(holder.percentage)} of supply | ` +
 					`${FormatUtils.formatCurrency(holder.usdValue)}\n`;
 			});
 
@@ -100,11 +97,9 @@ export const handleHoldersCommand = async (
 				`\n*Distribution Metrics:*\n` +
 				`• Top 3 holders: ${FormatUtils.formatPercentage(
 					top3Percentage,
-					2,
 				)} of supply\n` +
 				`• Top 10 holders: ${FormatUtils.formatPercentage(
 					top10Percentage,
-					2,
 				)} of supply\n`;
 
 			const tokenDetails = await VybeApi.getTokenDetails(mintAddress);

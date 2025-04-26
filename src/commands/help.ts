@@ -1,39 +1,47 @@
 import { CommandContext } from "grammy";
 import { MyContext } from "../types/session";
-import config from "../config";
+import { KeyboardUtils } from "../utils/keyboard";
 
 export const handleHelpCommand = async (
-	ctx: CommandContext<MyContext>,
+	ctx: CommandContext<MyContext> | MyContext,
 ): Promise<void> => {
 	try {
 		const helpMessage = `
-<b>🤖 Vybe Analytics Bot</b>
+🌠 *Vybe Analytics Bot Help* 🌠
 
-Get real-time on-chain analytics for Solana tokens, accounts, and programs.
+Here's what you can do with this bot:
 
-<b>Available Commands:</b>
+📊 *View Your Wallets*
+• See all your connected wallets and their balances
+• Get detailed token breakdowns for each wallet
 
-/token &lt;symbol/address&gt; - Get detailed token information
-/price &lt;symbol/address&gt; - Get token price chart
-/wallet &lt;address&gt; - Get wallet token holdings
-/holders &lt;symbol/address&gt; - Get top token holders
-/whales &lt;symbol/address&gt; - Track large token transfers
-/program &lt;program_id&gt; - Get program details
-/trending - Show trending tokens
-/compare &lt;token1,token2&gt; - Compare token metrics
-/help - Show this help message
+💰 *Track Solana Assets*
+• Add your wallet addresses to track balances
+• Monitor portfolio value over time
 
-<b>Need more analytics?</b>
-Visit AlphaVybe at ${config.ALPHA_VYBE_URL} for in-depth dashboards and data.
+🔍 *Commands*
+• /start - Start the bot and view your wallets
+• /help - Show this help message
+• /wallets - View all your connected wallets
+
+💡 *Tips*
+• Add multiple wallets by separating addresses with commas
+• Track any Solana wallet - even if it's not yours!
+• All data is refreshed in real-time from the blockchain
 `;
 
+		// Send help message with the main keyboard
 		await ctx.reply(helpMessage, {
-			parse_mode: "HTML",
+			parse_mode: "Markdown",
+			reply_markup: KeyboardUtils.createMainKeyboard(),
 		});
 	} catch (error) {
 		console.error("Error handling help command:", error);
-		await ctx.reply(
-			"An error occurred while displaying help information. Please try again later.",
-		);
+		await ctx.reply("An error occurred while showing help. Please try again.");
 	}
+};
+
+// Function for handling the help button
+export const showHelp = async (ctx: MyContext): Promise<void> => {
+	await handleHelpCommand(ctx);
 };

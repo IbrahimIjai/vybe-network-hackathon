@@ -4,21 +4,15 @@ export const FormatUtils = {
 	/**
 	 * Format currency values
 	 */
-	formatCurrency(value: number, decimals: number = 2): string {
-		if (value === 0) return "$0.00";
-		if (!value) return "N/A";
-
-		// For values less than 0.01
-		if (value < 0.01 && value > 0) {
-			return `$${value.toFixed(6)}`;
-		}
-
-		return new Intl.NumberFormat("en-US", {
-			style: "currency",
-			currency: "USD",
-			minimumFractionDigits: decimals,
-			maximumFractionDigits: decimals,
-		}).format(value);
+	formatCurrency(value: number): string {
+		return value === 0
+			? "$0.00"
+			: value < 0.01
+			? "<$0.01"
+			: `$${value.toLocaleString(undefined, {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2,
+			  })}`;
 	},
 
 	/**
@@ -48,26 +42,27 @@ export const FormatUtils = {
 	/**
 	 * Format token amounts based on decimals
 	 */
-	formatTokenAmount(amount: string, decimals: number): string {
-		const value = parseInt(amount) / Math.pow(10, decimals);
+	formatTokenAmount(amount: number | string, decimals: number = 0): string {
+		const amountNum = typeof amount === "string" ? parseFloat(amount) : amount;
+		const divisor = Math.pow(10, decimals);
+		const adjustedAmount = amountNum / divisor;
 
-		// For very small values
-		if (value < 0.001 && value > 0) {
-			return value.toExponential(4);
-		}
-
-		return this.formatNumber(value);
+		// Format based on size
+		if (adjustedAmount === 0) return "0";
+		if (adjustedAmount < 0.000001) return "<0.000001";
+		if (adjustedAmount < 1) return adjustedAmount.toFixed(6);
+		if (adjustedAmount < 1000) return adjustedAmount.toFixed(4);
+		if (adjustedAmount < 1000000)
+			return `${(adjustedAmount / 1000).toFixed(2)}K`;
+		return `${(adjustedAmount / 1000000).toFixed(2)}M`;
 	},
 
 	/**
 	 * Format percentage with sign and specified decimals
 	 */
-	formatPercentage(value: number, decimals: number = 2): string {
-		if (value === 0) return "0%";
-		if (!value) return "N/A";
-
-		const formattedValue = value.toFixed(decimals);
-		return `${value > 0 ? "+" : ""}${formattedValue}%`;
+	formatPercentage(value: number): string {
+		const formattedValue = (value * 100).toFixed(2);
+		return `${formattedValue}%`;
 	},
 
 	/**
@@ -80,19 +75,23 @@ export const FormatUtils = {
 	/**
 	 * Format timestamp to date string
 	 */
-	formatDate(timestamp: number, format: string = "MMM DD, YYYY HH:mm"): string {
-		return moment(timestamp * 1000).format(format);
+	formatDate(timestamp: number): string {
+		return new Date(timestamp).toLocaleString();
 	},
 
 	/**
 	 * Truncate Solana addresses
 	 */
-	truncateAddress(address: string): string {
-		if (!address) return "";
-		if (address.length <= 12) return address;
-
-		return `${address.substring(0, 4)}...${address.substring(
-			address.length - 4,
+	truncateAddress(
+		address: string,
+		startChars: number = 4,
+		endChars: number = 4,
+	): string {
+		if (!address || address.length <= startChars + endChars + 2) {
+			return address;
+		}
+		return `${address.substring(0, startChars)}...${address.substring(
+			address.length - endChars,
 		)}`;
 	},
 
@@ -122,5 +121,15 @@ export const FormatUtils = {
 		}
 
 		return "An error occurred. Please try again.";
+	},
+
+	/**
+	 * Format change with color indicator
+	 * This returns a string with + or - prefix
+	 */
+	formatChange(value: number): string {
+		if (value === 0) return "0.00%";
+		const prefix = value > 0 ? "+" : "";
+		return `${prefix}${(value * 100).toFixed(2)}%`;
 	},
 };

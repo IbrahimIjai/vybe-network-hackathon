@@ -133,7 +133,6 @@ async function handleTrackPrice(
 				const changePrefix = priceData.change24h >= 0 ? "+" : "";
 				message += `\n24h change: ${changePrefix}${FormatUtils.formatPercentage(
 					priceData.change24h,
-					2,
 				)}`;
 			}
 		}
@@ -280,7 +279,6 @@ async function handleListTracking(
 						priceData.price,
 					)} (${changePrefix}${FormatUtils.formatPercentage(
 						priceData.change24h || 0,
-						2,
 					)})\n`;
 				} else {
 					message += `• ${symbol}\n`;

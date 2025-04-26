@@ -2,7 +2,6 @@ import { VybeApi } from "../api/vybe";
 import { TransferNotification } from "../types/realtime";
 import { TokenTransfer } from "../types/api";
 import { EventEmitter } from "events";
-import { cacheService } from "./cache";
 import { FormatUtils } from "../utils/format";
 
 export class TransferWatcherService extends EventEmitter {
@@ -16,7 +15,6 @@ export class TransferWatcherService extends EventEmitter {
 		this.startPolling();
 	}
 
-	
 	public subscribeWallet(walletAddress: string, chatId: number): boolean {
 		try {
 			if (
@@ -185,7 +183,7 @@ export class TransferWatcherService extends EventEmitter {
 					to: transfer.receiver,
 					amount: FormatUtils.formatCurrency(
 						Number(transfer.amount),
-						transfer.decimals,
+						// transfer.decimals,
 					),
 					symbol: transfer.tokenSymbol,
 					usdValue: transfer.usdAmount,

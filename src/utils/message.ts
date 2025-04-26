@@ -12,7 +12,7 @@ export const MessageUtils = {
 	 * Create a URL to AlphaVybe platform with a specific path
 	 */
 	createAlphaVybeUrl(path: string): string {
-		return `${config.ALPHA_VYBE_URL}${path}`;
+		return `${config.VYBE_API_BASE_URL}${path}`;
 	},
 
 	/**
@@ -176,7 +176,7 @@ export const MessageUtils = {
 			`/compare <token1,token2> - Compare token metrics\n` +
 			`/help - Show this help message\n\n` +
 			`*Need more analytics?*\n` +
-			`[Visit AlphaVybe](${config.ALPHA_VYBE_URL}) for in-depth dashboards and data.`
+			`[Visit AlphaVybe](${config.VYBE_API_BASE_URL}) for in-depth dashboards and data.`
 		);
 	},
 };

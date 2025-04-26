@@ -24,13 +24,24 @@ export const KeyboardUtils = {
 			keyboard.text("➕ Add Wallet", "wallet_add");
 		}
 
-		if (wallets.length > 0) {
-			keyboard.text("🗑️ Remove Wallet", "wallet_remove");
-		}
+		// if (wallets.length > 0) {
+		// 	keyboard.text("🗑️ Remove Wallet", "wallet_remove");
+		// }
 
 		keyboard.row().text("💰 Refresh Balances", "wallets_refresh");
 		keyboard.row().text("ℹ️ Help", "show_help");
 
+		return keyboard;
+	},
+
+	/**
+	 * Create a main keyboard for general use
+	 */
+	createMainKeyboard(): InlineKeyboard {
+		const keyboard = new InlineKeyboard();
+		keyboard.text("➕ Add Wallet", "wallet_add");
+		keyboard.text("👛 View Wallets", "view_wallets").row();
+		keyboard.text("ℹ️ Help", "show_help");
 		return keyboard;
 	},
 

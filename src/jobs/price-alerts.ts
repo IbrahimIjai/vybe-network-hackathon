@@ -148,7 +148,7 @@ export class PriceAlertService {
 				`Current price: ${FormatUtils.formatCurrency(update.price)}\n` +
 				`24h change: ${
 					update.change24h
-						? FormatUtils.formatPercentage(update.change24h, 2)
+						? FormatUtils.formatPercentage(update.change24h)
 						: "N/A"
 				}\n\n` +
 				`Use \`/price ${update.symbol}\` for more details.`;
