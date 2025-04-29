@@ -80,41 +80,27 @@ if (process.env.NODE_ENV === "production") {
 	app.use(express.json());
 	const WEBHOOK_URL =
 		process.env.WEBHOOK_URL ||
-		`https://your-webhook-url.com/bot${config.BOT_TOKEN}`;
+		"https://vybe-network-hackathon-production.up.railway.app/";
 
-	app.post(`/bot${config.BOT_TOKEN}`, (req, res) => {
+	app.post(`/`, (req, res) => {
 		bot.handleUpdate(req.body);
 		res.sendStatus(200);
 	});
 
 	// Set webhook
-	// bot.api.setWebhook(WEBHOOK_URL);
+	bot.api.setWebhook(WEBHOOK_URL);
 
 	// Start express server
 	app.listen(config.PORT, () => {
 		console.log(`Express server is listening on port ${config.PORT}`);
 	});
-} else {
-	startBot();
-}
-
-if (process.env.NODE_ENV === "production") {
-	const app = express();
 
 	app.get("/health", (req, res) => {
 		res.status(200).send("OK");
 	});
-
-	app.listen(config.PORT + 1, () => {
-		console.log(`Health check endpoint listening on port ${config.PORT + 1}`);
-	});
+} else {
+	startBot();
 }
-
-// Initialize the realtime services
-// import { realtimePriceService } from "./services/realtime-price";
-// import { transferWatcherService } from "./services/transfer-watcher";
-// import { priceAlertService } from "./jobs/price-alerts";
-// import { walletMonitorService } from "./jobs/wallet-monitor";
 
 // Export bot instance for use in other files
 export { bot };
