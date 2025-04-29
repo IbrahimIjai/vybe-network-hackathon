@@ -72,11 +72,7 @@ Each command has a dedicated handler that processes user input, interacts with t
 - Token details (token.ts)
 - Price charts (price.ts)
 - Wallet analytics (wallet.ts)
-- Whale tracking (whales.ts)
 - Program analytics (program.ts)
-- Trending tokens (trending.ts)
-- Token holders (holders.ts)
-- Token comparison (compare.ts)
 - Help information (help.ts)
 
 ### 3. Data Services
@@ -84,7 +80,6 @@ Each command has a dedicated handler that processes user input, interacts with t
 Services responsible for data transformation and business logic:
 
 - **Vybe API Client** (api/vybe.ts): Manages all interactions with Vybe API endpoints
-- **Chart Service** (services/chart.ts): Generates visual charts for data representation
 
 ### 4. Utility Modules
 

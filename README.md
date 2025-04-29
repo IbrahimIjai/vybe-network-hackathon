@@ -34,11 +34,7 @@ VybeBot is a powerful Telegram bot that delivers real-time on-chain analytics fo
 - `/token <symbol/address>` - Get detailed token information
 - `/price <symbol/address> [timeframe]` - Get token price chart
 - `/wallet <address>` - Get wallet token holdings
-- `/holders <symbol/address>` - Get top token holders
-- `/whales <symbol/address>` - Track large token transfers
 - `/program <program_id>` - Get program details
-- `/trending` - Show trending tokens
-- `/compare <token1,token2,...>` - Compare token metrics
 - `/help` - Show help information
 
 ## Installation
@@ -61,7 +57,7 @@ VybeBot is a powerful Telegram bot that delivers real-time on-chain analytics fo
 2. Install dependencies
 
    ```
-   npm install
+   pnpm install
    ```
 
 3. Create `.env` file with your configuration
@@ -70,19 +66,27 @@ VybeBot is a powerful Telegram bot that delivers real-time on-chain analytics fo
    BOT_TOKEN=your_telegram_bot_token_here
    VYBE_API_KEY=your_vybe_api_key_here
    PORT=3000
-   ALPHA_VYBE_URL=https://alphavybe.xyz
+   VYBE_API_BASE_URL="https://api.vybenetwork.xyz"
+   REDIS_URL='...upstash.io'
+   REDIS_TOKEN='upstash redis tkens'
    ```
+
+```
 
 4. Build the project
 
-   ```
-   npm run build
-   ```
+```
+
+npm run build
+
+```
 
 5. Start the bot
-   ```
-   npm start
-   ```
+```
+
+pnpm start
+
+```
 
 ## Development
 
@@ -91,7 +95,9 @@ VybeBot is a powerful Telegram bot that delivers real-time on-chain analytics fo
 Run the bot in development mode with hot-reloading:
 
 ```
-npm run dev
+
+pnpm dev
+
 ```
 
 ### Project Structure
@@ -108,24 +114,29 @@ npm run dev
 
 1. Set environment variables for production
 
-   ```
-   NODE_ENV=production
-   BOT_TOKEN=your_telegram_bot_token
-   VYBE_API_KEY=your_vybe_api_key
-   PORT=3000
-   WEBHOOK_URL=https://your-webhook-url.com/botYOUR_BOT_TOKEN
-   ```
+```
+
+NODE_ENV=production
+BOT_TOKEN=your_telegram_bot_token
+VYBE_API_KEY=your_vybe_api_key
+PORT=3000
+
+```
 
 2. Build the project
 
-   ```
-   npm run build
-   ```
+```
+
+pnpm build
+
+```
 
 3. Start in production mode
-   ```
-   npm start
-   ```
+```
+
+pnpm start
+
+```
 
 ## Samples
 
@@ -133,17 +144,12 @@ Here are some example interactions with the bot:
 
 ### Token Details
 
-Command: `/token SOL`
+Command: `/token 9pfHkYXunNmCoNaxtBgUichH781ewnmBGb6iLPNyLSv`
 
 - Returns comprehensive token information including price, market cap, volume, and holders count
 - Includes top holders information and links to AlphaVybe for more analytics
 
-### Price Chart
 
-Command: `/price SOL 7d`
-
-- Generates a 7-day price chart for SOL token
-- Displays current price and performance metrics
 
 ### Wallet Analysis
 
@@ -152,12 +158,7 @@ Command: `/wallet ADDRESS`
 - Shows token holdings with USD value
 - Generates portfolio distribution charts and historical value trends
 
-### Whale Movements
 
-Command: `/whales SOL`
-
-- Tracks large token transfers
-- Shows sender/receiver addresses and transaction values
 
 ## Metrics Provided
 
@@ -197,9 +198,9 @@ VybeBot provides a wide range of metrics across different categories:
 
 ## Links
 
-- [AlphaVybe Analytics](https://alphavybe.xyz)
 - [Vybe API Documentation](https://docs.vybe.finance/)
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+```
