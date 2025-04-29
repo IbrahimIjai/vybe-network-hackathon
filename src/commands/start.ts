@@ -29,10 +29,12 @@ export const handleStartCommand = async (
 		const welcomeMessage = `
 👋 *Welcome to Vybe Analytics Bot, ${username}!*
 
-Get real-time analytics for Solana tokens, wallets, and programs directly in Telegram All powered by vybe network apis
+Get real-time analytics for Solana tokens, wallets, and programs directly in Telegram. All powered by Vybe network APIs.
+
+*Touch the "help" Button and get instructions on how to navigate through Vybe bot*
 `;
 
-		// Create wallet overview table
+		// Create wallet overview message
 		let walletMessage = "";
 
 		if (wallets.length > 0) {
@@ -48,47 +50,19 @@ Get real-time analytics for Solana tokens, wallets, and programs directly in Tel
 					walletAddresses,
 				);
 
-				// Create wallet table header
-				walletMessage = "\n*Your Wallet Overview:*\n```\n";
-				walletMessage += "Wallet(s)           \n";
-				walletMessage += "-------------------------------\n";
-
-				// Add wallet rows - check if ownerAddresses exists in the response
-				if (
-					balanceData.ownerAddresses &&
-					Array.isArray(balanceData.ownerAddresses)
-				) {
-					balanceData.ownerAddresses.forEach((wallet: string) => {
-						const truncatedAddress = FormatUtils.truncateAddress(wallet);
-						const addressPadded = truncatedAddress.padEnd(20, " ");
-						walletMessage += `${addressPadded}  \n`;
-					});
-				} else {
-					// Fallback to using the original wallets array
-					wallets.forEach((wallet) => {
-						const truncatedAddress = FormatUtils.truncateAddress(
-							wallet.address,
-						);
-						const addressPadded = truncatedAddress.padEnd(20, " ");
-						walletMessage += `${addressPadded} | \n`;
-					});
-				}
-
-				walletMessage += "--------------------------------\n";
-
 				// Format total value
 				const totalValueUsd = balanceData.totalTokenValueUsd
 					? parseFloat(balanceData.totalTokenValueUsd)
 					: 0;
 				const formattedTotal = FormatUtils.formatCurrency(totalValueUsd);
 
-				walletMessage += `Total Portfolio \n`;
-				walletMessage += `T${formattedTotal}\n`;
-				walletMessage += "```\n";
+				walletMessage = "\n*Your Wallet Overview:*\n";
+				walletMessage += `*Total Portfolio Value:* ${formattedTotal}\n`;
+				walletMessage += `*Number of Wallets:* ${wallets.length}\n`;
 
 				// Add token count if available
 				if (balanceData.totalTokenCount) {
-					walletMessage += `\n*Total Tokens:* ${balanceData.totalTokenCount}\n`;
+					walletMessage += `*Total Tokens:* ${balanceData.totalTokenCount}\n`;
 				}
 
 				// Add 24h change if available
@@ -106,25 +80,23 @@ Get real-time analytics for Solana tokens, wallets, and programs directly in Tel
 			} catch (error) {
 				console.error("Error fetching wallet balances:", error);
 				walletMessage = "\n*Your Wallets:*\n";
-				wallets.forEach((wallet) => {
-					walletMessage += `• \`${FormatUtils.truncateAddress(
-						wallet.address,
-					)}\`\n`;
-				});
+				walletMessage += `You have ${wallets.length} wallet(s) added.\n`;
 				walletMessage += "\n_Couldn't load balances. Please try refreshing._\n";
 			}
 		} else {
 			// No wallets yet
-			walletMessage = "\n*Your Wallet Overview:*\n```\n";
-			walletMessage += "Wallet               | Balance\n";
-			walletMessage += "---------------------|-----------\n";
-			walletMessage += "No wallets added yet | $0.00\n";
-			walletMessage += "```\n";
+			walletMessage = "\n*Your Wallet Overview:*\n";
+			walletMessage += "No wallets added yet.\n";
 			walletMessage += "\nAdd a wallet to track your Solana assets.\n";
 		}
 
-		// Create keyboard
-		const keyboard = KeyboardUtils.createWalletListKeyboard(wallets);
+		// Create keyboard with a single "See Wallets" button
+		const keyboard = new InlineKeyboard()
+			.text("👛 See Wallets", "view_wallets")
+			.row()
+			.text("➕ Add Wallet", "wallet_add")
+			.row()
+			.text("❓ Help", "show_help");
 
 		// Send complete message with wallet info and keyboard
 		await ctx.reply(welcomeMessage + walletMessage, {
@@ -259,7 +231,7 @@ export const displayWalletDetail = async (
 		}
 
 		// Add view on explorer link
-		message += `\n[View on Explorer](https://solscan.io/account/${walletAddress})\n`;
+		message += `\n[View on Vybe](https://vybe.fyi/wallets/${walletAddress})\n`;
 
 		// Update the loading message with wallet details
 		await ctx.api.editMessageText(

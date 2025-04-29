@@ -100,6 +100,60 @@ class RedisService {
 			}
 		}
 	}
+
+	// Set-based wallet management methods
+	async addWallet(userId: string, walletAddress: string): Promise<boolean> {
+		try {
+			const userWalletsKey = `user:${userId}:wallets`;
+			const walletUsersKey = `wallet:${walletAddress}:users`;
+
+			// Add user to wallet's subscribers
+			await this.client.sadd(walletUsersKey, userId);
+
+			return true;
+		} catch (error) {
+			console.error("Error adding wallet:", error);
+			return false;
+		}
+	}
+
+	async removeWallet(userId: string, walletAddress: string): Promise<boolean> {
+		try {
+			const userWalletsKey = `user:${userId}:wallets`;
+			const walletUsersKey = `wallet:${walletAddress}:users`;
+
+			// Remove wallet from user's wallets
+			await this.client.srem(userWalletsKey, walletAddress);
+
+			// Remove user from wallet's subscribers
+			await this.client.srem(walletUsersKey, userId);
+
+			return true;
+		} catch (error) {
+			console.error("Error removing wallet:", error);
+			return false;
+		}
+	}
+
+	async getUserWallets(userId: string): Promise<string[]> {
+		try {
+			const userWalletsKey = `user:${userId}:wallets`;
+			return await this.client.smembers(userWalletsKey);
+		} catch (error) {
+			console.error("Error getting user wallets:", error);
+			return [];
+		}
+	}
+
+	async getWalletSubscribers(walletAddress: string): Promise<string[]> {
+		try {
+			const walletUsersKey = `wallet:${walletAddress}:users`;
+			return await this.client.smembers(walletUsersKey);
+		} catch (error) {
+			console.error("Error getting wallet subscribers:", error);
+			return [];
+		}
+	}
 }
 
 // Export singleton instance

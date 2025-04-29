@@ -1,13 +1,14 @@
 import { MyContext } from "../types/session";
 import { redisService, UserWallet } from "../services/redis";
 import { showHelp } from "../commands/help";
-import { displayWalletDetail } from "../commands/start";
+import { displayWalletDetail, handleStartCommand } from "../commands/start";
 import { displayNFTPortfolio } from "../commands/nft";
 import { displayTokenDetails, handleTokenCommand } from "../commands/token";
 import { displayPriceChart } from "../commands/price";
 import { handleProgramCommand } from "../commands/program";
 import { FormatUtils } from "../utils/format";
 import { KeyboardUtils } from "../utils/keyboard";
+import { InlineKeyboard } from "grammy";
 
 /**
  * Handle all callback queries from inline buttons
@@ -33,6 +34,9 @@ export const handleCallbackQuery = async (ctx: MyContext): Promise<void> => {
 		} else if (callbackData === "back_to_wallets") {
 			// Handle back to wallets button click
 			await handleViewWalletsButton(ctx);
+		} else if (callbackData === "back_to_start") {
+			// Handle back to start button click
+			await handleStartCommand(ctx as any);
 		} else if (callbackData === "view_nfts") {
 			// Handle view NFTs button click
 			await displayNFTPortfolio(ctx);
@@ -67,7 +71,10 @@ export const handleCallbackQuery = async (ctx: MyContext): Promise<void> => {
 			await ctx.reply(`\`${mintAddress}\``, {
 				parse_mode: "Markdown",
 			});
-		} else if (callbackData.startsWith("program_details:") || callbackData.startsWith("program_users:")) {
+		} else if (
+			callbackData.startsWith("program_details:") ||
+			callbackData.startsWith("program_users:")
+		) {
 			// Handle program-related clicks
 			const programAddress = callbackData.split(":")[1];
 			// Create a new context with the program address as the command argument
@@ -125,7 +132,10 @@ const handleViewWalletsButton = async (ctx: MyContext): Promise<void> => {
 		await ctx.reply(
 			"You don't have any wallets added yet. Click the button below to add one.",
 			{
-				reply_markup: KeyboardUtils.createWalletListKeyboard([], true),
+				reply_markup: new InlineKeyboard()
+					.text("➕ Add Wallet", "wallet_add")
+					.row()
+					.text("« Back", "back_to_start"),
 			},
 		);
 		return;
@@ -138,8 +148,25 @@ const handleViewWalletsButton = async (ctx: MyContext): Promise<void> => {
 		message += `${index + 1}. \`${label}\` - \`${wallet.address}\`\n`;
 	});
 
+	// Create keyboard with wallet buttons
+	const keyboard = new InlineKeyboard();
+
+	// Add wallet buttons (max 5 per row)
+	wallets.forEach((wallet, index) => {
+		const label = wallet.label || FormatUtils.truncateAddress(wallet.address);
+		keyboard.text(label, `wallet_view:${wallet.address}`);
+
+		// Add a new row after every 2 buttons
+		if ((index + 1) % 2 === 0 && index < wallets.length - 1) {
+			keyboard.row();
+		}
+	});
+
+	// Add back button
+	keyboard.row().text("« Back", "back_to_start");
+
 	await ctx.reply(message, {
 		parse_mode: "Markdown",
-		reply_markup: KeyboardUtils.createWalletListKeyboard(wallets),
+		reply_markup: keyboard,
 	});
 };
