@@ -22,8 +22,8 @@ Here's what you can do with this bot:
 🔍 *Commands*
 • /start - Start the bot and view your wallets
 • /help - Show this help message
-• /wallets - View all your connected wallets
-
+• /holders [token address] - View all your connected wallets
+• /token [token address] - View all details and analytics about the token
 💡 *Tips*
 • Add multiple wallets by separating addresses with commas
 • Track any Solana wallet - even if it's not yours!

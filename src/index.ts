@@ -15,6 +15,7 @@ import { handleTextMessage } from "./handlers/messageHandlers";
 
 // Import Redis service
 import { redisService } from "./services/redis";
+import { handleHoldersCommand } from "./commands/holders";
 
 // Create bot instance
 const bot = new Bot<MyContext>(config.BOT_TOKEN);
@@ -24,6 +25,7 @@ bot.use(session({ initial: (): SessionData => ({}) }));
 bot.api.setMyCommands([
 	{ command: "token", description: "Get detailed token information" },
 	{ command: "price", description: "Get token price chart" },
+	{ command: "holders", description: "Get token holders list of top ten whales" },
 	{ command: "help", description: "Show help information" },
 	{ command: "start", description: "Start the bot" },
 ]);
@@ -31,6 +33,7 @@ bot.api.setMyCommands([
 
 bot.command("token", handleTokenCommand);
 bot.command("price", handlePriceCommand);
+bot.command("holders", handleHoldersCommand);
 bot.command("help", handleHelpCommand);
 bot.command("start", handleStartCommand);
 

@@ -85,8 +85,7 @@ export const displayPriceChart = async (
 			}))
 			.sort((a: any, b: any) => a.time.getTime() - b.time.getTime());
 
-		// Create ASCII chart
-		const chart = createAsciiChart(processedData);
+		// Create chart d3, whatever, not sure
 
 		// Calculate price change
 		const oldestPrice = processedData[0]?.close || 0;
@@ -106,7 +105,7 @@ export const displayPriceChart = async (
 		message += `*Current Price:* ${FormatUtils.formatCurrency(currentPrice)}\n`;
 		message += `*14-Day Change:* ${changeText}\n\n`;
 		message += "```\n";
-		message += chart;
+		message += `*CHART COMMING SOON!!*`;
 		message += "```\n";
 
 		// Add time range info
@@ -117,7 +116,6 @@ export const displayPriceChart = async (
 	
 		message += `\n\n[View on Vybe.fyi](https://vybe.fyi/tokens/${mintAddress}?tab=overview)\n`;
 
-		// Create keyboard with options
 		const keyboard = new InlineKeyboard()
 			.text("7 Days", `price_range:${mintAddress}:7d`)
 			.text("14 Days", `price_range:${mintAddress}:14d`)
@@ -127,7 +125,7 @@ export const displayPriceChart = async (
 			.row()
 			.text("« View Token Details", `token_details:${mintAddress}`);
 
-		// Update loading message with chart
+
 		await ctx.api.editMessageText(
 			loadingMsg.chat.id,
 			loadingMsg.message_id,
@@ -146,80 +144,6 @@ export const displayPriceChart = async (
 		);
 	}
 };
-
-/**
- * Create a simple ASCII chart from price data
- */
-function createAsciiChart(
-	data: { time: Date; close: number }[],
-	width: number = 30,
-	height: number = 10,
-): string {
-	if (data.length === 0) return "No data available";
-
-	// Get min and max prices
-	const prices = data.map((item) => item.close);
-	const minPrice = Math.min(...prices);
-	const maxPrice = Math.max(...prices);
-	const priceRange = maxPrice - minPrice;
-
-	// Handle flat price
-	if (priceRange === 0) {
-		const flatLine = "─".repeat(width);
-		const chart = Array(height)
-			.fill("")
-			.map((_, i) => {
-				if (i === Math.floor(height / 2)) return "│" + flatLine;
-				return "│" + " ".repeat(width);
-			})
-			.join("\n");
-		return chart + "\n" + "└" + "─".repeat(width);
-	}
-
-	// Create chart rows
-	const chartRows: string[] = [];
-
-	// Create each row of the chart
-	for (let i = 0; i < height; i++) {
-		const rowPrice = maxPrice - (i / (height - 1)) * priceRange;
-		let row = "│";
-
-		for (let j = 0; j < width; j++) {
-			// Calculate which data point corresponds to this column
-			const dataIndex = Math.min(
-				Math.floor((j / width) * data.length),
-				data.length - 1,
-			);
-			const price = data[dataIndex].close;
-
-			// Add a point if the price crosses this row
-			const nextDataIndex = Math.min(dataIndex + 1, data.length - 1);
-			const nextPrice = data[nextDataIndex].close;
-
-			const currentPriceAboveRow = price >= rowPrice;
-			const nextPriceAboveRow = nextPrice >= rowPrice;
-
-			if (currentPriceAboveRow && nextPriceAboveRow) {
-				row += " ";
-			} else if (currentPriceAboveRow && !nextPriceAboveRow) {
-				row += "╲";
-			} else if (!currentPriceAboveRow && nextPriceAboveRow) {
-				row += "╱";
-			} else if (Math.abs(price - rowPrice) < priceRange / (height * 2)) {
-				row += "─";
-			} else {
-				row += " ";
-			}
-		}
-
-		chartRows.push(row);
-	}
-
-	// Add x-axis
-	chartRows.push("└" + "─".repeat(width));
-
-	return chartRows.join("\n");
-}
 
 /**
  * Format date as MM/DD

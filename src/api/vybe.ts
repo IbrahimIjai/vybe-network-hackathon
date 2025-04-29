@@ -20,10 +20,10 @@ const api = axios.create({
 });
 
 export const VybeApi = {
-	async getTokenBalance(ownerAddress: string): Promise<TokenBalanceResponse> {
-		const response = await api.get(`/account/token-balance/${ownerAddress}`);
-		return response.data;
-	},
+	// async getTokenBalance(ownerAddress: string): Promise<TokenBalanceResponse> {
+	// 	const response = await api.get(`/account/token-balance/${ownerAddress}`);
+	// 	return response.data;
+	// },
 
 	async getNFTBalance(ownerAddress: string): Promise<any> {
 		const response = await api.get(`/account/nft-balance/${ownerAddress}`);
@@ -37,24 +37,6 @@ export const VybeApi = {
 		return response.data;
 	},
 
-	async getTokenBalanceTimeSeries(
-		ownerAddress: string,
-		days: number = 30,
-	): Promise<any> {
-		const response = await api.get(
-			`/account/token-balance-ts/${ownerAddress}`,
-			{
-				params: { days },
-			},
-		);
-		return response.data;
-	},
-
-	async getKnownAccounts(params: any = {}): Promise<KnownAccount[]> {
-		const response = await api.get("/account/known-accounts", { params });
-		return response.data;
-	},
-
 	async getTokenDetails(mintAddress: string): Promise<TokenDetails> {
 		const response = await api.get(`/token/${mintAddress}`);
 		return response.data;
@@ -62,12 +44,14 @@ export const VybeApi = {
 
 	async getTopHolders(
 		mintAddress: string,
-		limit: number = 10,
+		limit: number = 20,
 	): Promise<TopHoldersResponse> {
 		const response = await api.get(`/token/${mintAddress}/top-holders`, {
-			params: { limit },
+			params: { limit, sortByDesc: "valueUsd" },
 		});
-		return response.data;
+
+		console.log({ holdersssresponsesssss: response });
+		return response.data.data;
 	},
 
 	async getTokenTransfers(params: any = {}): Promise<TokenTransfer[]> {
@@ -221,65 +205,6 @@ export const VybeApi = {
 			console.error("Error fetching wallet transfers:", error);
 			return [];
 		}
-	},
-
-	/**
-	 * Get wallet info
-	 */
-	async getWalletInfo(walletAddress: string): Promise<any> {
-		try {
-			const response = await api.get(`/wallet/${walletAddress}`);
-			return response.data;
-		} catch (error) {
-			console.error("Error fetching wallet info:", error);
-			return null;
-		}
-	},
-
-	/**
-	 * Get the combined balance for a wallet
-	 */
-	async getWalletTotalBalance(walletAddress: string): Promise<number> {
-		try {
-			const balanceData = await this.getTokenBalance(walletAddress);
-			return balanceData.totalUsdValue || 0;
-		} catch (error) {
-			console.error(
-				`Error getting total balance for wallet ${walletAddress}:`,
-				error,
-			);
-			return 0;
-		}
-	},
-
-	/**
-	 * Get all wallet balances for multiple addresses
-	 */
-	async getMultipleWalletBalances(
-		walletAddresses: string[],
-	): Promise<{ [address: string]: number }> {
-		const result: { [address: string]: number } = {};
-
-		// Process in chunks to avoid rate limits
-		const chunkSize = 3;
-		for (let i = 0; i < walletAddresses.length; i += chunkSize) {
-			const chunk = walletAddresses.slice(i, i + chunkSize);
-
-			// Process chunk in parallel
-			const chunkPromises = chunk.map(async (address) => {
-				const balance = await this.getWalletTotalBalance(address);
-				result[address] = balance;
-			});
-
-			await Promise.all(chunkPromises);
-
-			// Small delay between chunks to avoid rate limits
-			if (i + chunkSize < walletAddresses.length) {
-				await new Promise((resolve) => setTimeout(resolve, 500));
-			}
-		}
-
-		return result;
 	},
 
 	/**
