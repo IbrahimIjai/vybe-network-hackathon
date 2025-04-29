@@ -91,10 +91,10 @@ if (process.env.NODE_ENV === "production") {
 			res.sendStatus(200);
 		});
 		
-		// Set webhook
-		bot.api.setWebhook(WEBHOOK_URL).then(() => {
-			console.log(`Webhook set to: ${WEBHOOK_URL}`);
-		});
+		// // Set webhook
+		// bot.api.setWebhook(WEBHOOK_URL).then(() => {
+		// 	console.log(`Webhook set to: ${WEBHOOK_URL}`);
+		// });
 		
 		// Start express server
 		app.listen(config.PORT, () => {
