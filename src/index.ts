@@ -82,25 +82,36 @@ if (process.env.NODE_ENV === "production") {
 		process.env.WEBHOOK_URL ||
 		"https://vybe-network-hackathon-production.up.railway.app/";
 
-	app.post(`/`, (req, res) => {
-		bot.handleUpdate(req.body);
-		res.sendStatus(200);
-	});
-
-	// Set webhook
-	bot.api.setWebhook(WEBHOOK_URL);
-
-	// Start express server
-	app.listen(config.PORT, () => {
-		console.log(`Express server is listening on port ${config.PORT}`);
-	});
-
-	app.get("/health", (req, res) => {
-		res.status(200).send("OK");
+	// Important: Initialize the bot before handling updates
+	bot.init().then(() => {
+		console.log("Bot initialized successfully for webhook mode");
+		
+		app.post("/", (req, res) => {
+			bot.handleUpdate(req.body);
+			res.sendStatus(200);
+		});
+		
+		// Set webhook
+		bot.api.setWebhook(WEBHOOK_URL).then(() => {
+			console.log(`Webhook set to: ${WEBHOOK_URL}`);
+		});
+		
+		// Start express server
+		app.listen(config.PORT, () => {
+			console.log(`Express server is listening on port ${config.PORT}`);
+		});
+		
+		app.get("/health", (req, res) => {
+			res.status(200).send("OK");
+		});
+	}).catch(err => {
+		console.error("Failed to initialize bot:", err);
+		process.exit(1);
 	});
 } else {
 	startBot();
 }
+
 
 // Export bot instance for use in other files
 export { bot };
