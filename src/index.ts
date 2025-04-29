@@ -6,17 +6,8 @@ import { MyContext, SessionData } from "./types/session";
 // Import command handlers
 import { handleTokenCommand } from "./commands/token";
 import { handlePriceCommand } from "./commands/price";
-import { handleWalletCommand } from "./commands/wallet";
-import { handleWhalesCommand } from "./commands/whales";
-import { handleProgramCommand } from "./commands/program";
-import { handleTrendingCommand } from "./commands/trending";
-import { handleHoldersCommand } from "./commands/holders";
-import { handleCompareCommand } from "./commands/compare";
 import { handleHelpCommand } from "./commands/help";
 import { handleStartCommand } from "./commands/start";
-import { handleWalletsCommand } from "./commands/wallets";
-// import { handleTrackCommand } from "./commands/track";
-// import { handleNotificationsCommand } from "./commands/notifications";
 
 // Import callback and message handlers
 import { handleCallbackQuery } from "./handlers/callbackHandlers";
@@ -33,38 +24,18 @@ bot.use(session({ initial: (): SessionData => ({}) }));
 bot.api.setMyCommands([
 	{ command: "token", description: "Get detailed token information" },
 	{ command: "price", description: "Get token price chart" },
-	{ command: "wallet", description: "Get wallet token holdings" },
-	{ command: "wallets", description: "View your saved wallets" },
-	{ command: "holders", description: "Get top token holders" },
-	{ command: "whales", description: "Track large token transfers" },
-	{ command: "program", description: "Get program details" },
-	{ command: "trending", description: "Show trending tokens" },
-	{ command: "compare", description: "Compare token metrics" },
-	// { command: "track", description: "Track token prices or wallet activity" },
-	// { command: "notifications", description: "Manage notification settings" },
 	{ command: "help", description: "Show help information" },
 	{ command: "start", description: "Start the bot" },
 ]);
 
-// Register command handlers
+
 bot.command("token", handleTokenCommand);
 bot.command("price", handlePriceCommand);
-bot.command("wallet", handleWalletCommand);
-bot.command("wallets", handleWalletsCommand);
-bot.command("whales", handleWhalesCommand);
-bot.command("program", handleProgramCommand);
-bot.command("trending", handleTrendingCommand);
-bot.command("holders", handleHoldersCommand);
-bot.command("compare", handleCompareCommand);
 bot.command("help", handleHelpCommand);
 bot.command("start", handleStartCommand);
-// bot.command("track", handleTrackCommand);
-// bot.command("notifications", handleNotificationsCommand);
 
-// Register callback query handler for buttons
 bot.on("callback_query:data", handleCallbackQuery);
 
-// Register text message handler for wallet addresses
 bot.on("message:text", handleTextMessage);
 
 // Initialize Redis connection

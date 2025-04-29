@@ -114,8 +114,8 @@ export const displayPriceChart = async (
 		const endDate = formatDate(processedData[processedData.length - 1]?.time);
 		message += `\nShowing price data from ${startDate} to ${endDate}`;
 
-		// Add explorer link
-		message += `\n\n[View on Explorer](https://solscan.io/token/${mintAddress})\n`;
+	
+		message += `\n\n[View on Vybe.fyi](https://vybe.fyi/tokens/${mintAddress}?tab=overview)\n`;
 
 		// Create keyboard with options
 		const keyboard = new InlineKeyboard()

@@ -222,8 +222,15 @@ export const displayTokenDetails = async (
 			message += `[Telegram](${tokenDetails.telegram})`;
 		}
 
-		// Add explorer link
-		message += `\n\n[View on Explorer](https://solscan.io/token/${mintAddress})\n`;
+		message += `\n\n[sign up on Vybe.fyi](https://vybe.fyi/tokens/${mintAddress}?tab=overview)\n`;
+
+		// vybe network explorer
+		message += `\n\n[View on Vybe.fyi](https://vybe.fyi/tokens/${mintAddress}?tab=overview)\n`;
+
+		// Add command usage info
+		message += "\n\n🔍 *Pro Tip:*\n";
+		message += "```\n/token [address]\n```\n";
+		message += "Use this command to explore any token on Vybe Network! 🚀\n";
 
 		// Create keyboard with copy button
 		const keyboard = new InlineKeyboard()
