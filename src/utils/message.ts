@@ -113,17 +113,17 @@ export const MessageUtils = {
 			`📝 *Program ID:* \`${FormatUtils.truncateAddress(
 				program.programId,
 			)}\`\n` +
-			`💰 *TVL:* ${FormatUtils.formatCurrency(program.tvl)}\n` +
+			`💰 *TVL:* ${FormatUtils.formatCurrency(program.tvl || 0)}\n` +
 			`👥 *Daily Active Users:* ${FormatUtils.formatNumber(
-				program.dailyActiveUsers,
+				program.dailyActiveUsers || 0,
 				0,
 			)}\n` +
 			`🔄 *24h Transactions:* ${FormatUtils.formatNumber(
-				program.transactionsCount24h,
+				program.transactionsCount24h || 0,
 				0,
 			)}\n` +
 			`📋 *24h Instructions:* ${FormatUtils.formatNumber(
-				program.instructionsCount24h,
+				program.instructionsCount24h || 0,
 				0,
 			)}\n` +
 			`🏷️ *Labels:* ${program.labels?.join(", ") || "N/A"}\n\n` +

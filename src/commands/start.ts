@@ -29,7 +29,7 @@ export const handleStartCommand = async (
 		const welcomeMessage = `
 👋 *Welcome to Vybe Analytics Bot, ${username}!*
 
-Get real-time analytics for Solana tokens, wallets, and programs directly in Telegram.
+Get real-time analytics for Solana tokens, wallets, and programs directly in Telegram All powered by vybe network apis
 `;
 
 		// Create wallet overview table

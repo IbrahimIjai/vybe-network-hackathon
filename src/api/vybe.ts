@@ -115,21 +115,6 @@ export const VybeApi = {
 		return response.data;
 	},
 
-	async getProgramDetails(programId: string): Promise<Program> {
-		const response = await api.get(`/program/${programId}`);
-		return response.data;
-	},
-
-	async getProgramActiveUsers(
-		programId: string,
-		days: number = 7,
-	): Promise<any> {
-		const response = await api.get(`/program/${programId}/active-users`, {
-			params: { days },
-		});
-		return response.data;
-	},
-
 	async getProgramTVL(
 		programId: string,
 		resolution: string = "1d",
@@ -280,5 +265,31 @@ export const VybeApi = {
 			console.error(`Error fetching OHLCV data for ${mintAddress}:`, error);
 			return [];
 		}
+	},
+
+	/**
+	 * Get program details
+	 * @param programAddress The program address
+	 * @returns Program details
+	 */
+
+	async getProgramDetails(programId: string): Promise<Program> {
+		const response = await api.get(`/program/${programId}`);
+		return response.data;
+	},
+
+	/**
+	 * Get program active users
+	 * @param programAddress The program address
+	 * @returns Program active users
+	 */
+
+	async getProgramActiveUsers(programId: string): Promise<any[]> {
+		const response = await api.get(`/program/${programId}/active-users`, {
+			params: {
+				sortByDesc: "transactions",
+			},
+		});
+		return response.data.data;
 	},
 };

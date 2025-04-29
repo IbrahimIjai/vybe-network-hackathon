@@ -86,11 +86,22 @@ export interface Program {
 	programId: string;
 	name: string;
 	description?: string;
-	dailyActiveUsers: number;
-	tvl: number;
-	transactionsCount24h: number;
-	instructionsCount24h: number;
+	dailyActiveUsers?: number;
+	tvl?: number;
+	transactionsCount24h?: number;
+	instructionsCount24h?: number;
 	labels?: string[];
+	// Additional fields from the actual API response
+	logoUrl?: string;
+	programDescription?: string;
+	entityName?: string;
+	friendlyName?: string;
+	dau?: number;
+	newUsersChange1d?: number;
+	transactions1d?: number;
+	instructions1d?: number;
+	programDetail?: string | null;
+	idlUrl?: string | null;
 }
 
 // Account types

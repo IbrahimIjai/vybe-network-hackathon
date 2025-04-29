@@ -8,6 +8,8 @@ import { handleTokenCommand } from "./commands/token";
 import { handlePriceCommand } from "./commands/price";
 import { handleHelpCommand } from "./commands/help";
 import { handleStartCommand } from "./commands/start";
+import { handleHoldersCommand } from "./commands/holders";
+import { handleProgramCommand } from "./commands/program";
 
 // Import callback and message handlers
 import { handleCallbackQuery } from "./handlers/callbackHandlers";
@@ -15,7 +17,6 @@ import { handleTextMessage } from "./handlers/messageHandlers";
 
 // Import Redis service
 import { redisService } from "./services/redis";
-import { handleHoldersCommand } from "./commands/holders";
 
 // Create bot instance
 const bot = new Bot<MyContext>(config.BOT_TOKEN);
@@ -25,15 +26,22 @@ bot.use(session({ initial: (): SessionData => ({}) }));
 bot.api.setMyCommands([
 	{ command: "token", description: "Get detailed token information" },
 	{ command: "price", description: "Get token price chart" },
-	{ command: "holders", description: "Get token holders list of top ten whales" },
+	{
+		command: "holders",
+		description: "Get token holders list of top ten whales",
+	},
+	{
+		command: "program",
+		description: "Get Solana program details and active users",
+	},
 	{ command: "help", description: "Show help information" },
 	{ command: "start", description: "Start the bot" },
 ]);
 
-
 bot.command("token", handleTokenCommand);
 bot.command("price", handlePriceCommand);
 bot.command("holders", handleHoldersCommand);
+bot.command("program", handleProgramCommand);
 bot.command("help", handleHelpCommand);
 bot.command("start", handleStartCommand);
 

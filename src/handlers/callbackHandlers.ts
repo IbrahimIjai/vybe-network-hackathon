@@ -5,6 +5,7 @@ import { displayWalletDetail } from "../commands/start";
 import { displayNFTPortfolio } from "../commands/nft";
 import { displayTokenDetails, handleTokenCommand } from "../commands/token";
 import { displayPriceChart } from "../commands/price";
+import { handleProgramCommand } from "../commands/program";
 import { FormatUtils } from "../utils/format";
 import { KeyboardUtils } from "../utils/keyboard";
 
@@ -66,6 +67,12 @@ export const handleCallbackQuery = async (ctx: MyContext): Promise<void> => {
 			await ctx.reply(`\`${mintAddress}\``, {
 				parse_mode: "Markdown",
 			});
+		} else if (callbackData.startsWith("program_details:") || callbackData.startsWith("program_users:")) {
+			// Handle program-related clicks
+			const programAddress = callbackData.split(":")[1];
+			// Create a new context with the program address as the command argument
+			const programCtx = { ...ctx, match: programAddress } as any;
+			await handleProgramCommand(programCtx);
 		}
 	} catch (error) {
 		console.error("Error handling callback query:", error);
