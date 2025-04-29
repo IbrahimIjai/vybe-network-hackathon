@@ -34,6 +34,7 @@ VybeBot is a powerful Telegram bot that delivers real-time on-chain analytics fo
 - `/token <symbol/address>` - Get detailed token information
 - `/price <symbol/address> [timeframe]` - Get token price chart
 - `/wallet <address>` - Get wallet token holdings
+- `/nft <address>` - Get wallet nft holdings
 - `/program <program_id>` - Get program details
 - `/help` - Show help information
 
@@ -41,9 +42,9 @@ VybeBot is a powerful Telegram bot that delivers real-time on-chain analytics fo
 
 ### Prerequisites
 
-- Node.js (v16+)
+- Node.js (v18+)
 - Telegram Bot Token (from [@BotFather](https://t.me/BotFather))
-- Vybe API Key (from [Vybe](https://t.me/ericvybes))
+- Vybe API Key
 
 ### Setup
 
